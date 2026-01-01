@@ -129,9 +129,7 @@ if __name__ == '__main__':
     try:
         helper.connect_wifi(ws.settings.SSID, ws.settings.PASSWORD, False, "weather-station")
 
-        ota_updater = OTAUpdater(ws.settings.FIRMWARE_URL, ["playground.py", "asd.py"])
-
-        ota_updater.download_and_install_update_if_available()
+        ws.ota_updater.download_and_install_update_if_available()
 
         data = ws.get_data(ws.settings.LAT, ws.settings.LON, ws.settings.CNT, ws.settings.UNITS, ws.settings.LANG,
                            ws.settings.API_KEY)
