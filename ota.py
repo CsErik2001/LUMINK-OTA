@@ -2,6 +2,7 @@ import urequests
 import os
 import json
 import machine
+import time
 
 
 class OTAUpdater:
@@ -38,7 +39,21 @@ class OTAUpdater:
         # Fetch the latest code from the repo.
         for filename in self.filenames:
             firmware_url = self.repo_url + self.branch + '/' + filename
-            response = urequests.get(firmware_url)
+
+            response = None
+            max_retries = 3
+            for i in range(max_retries):
+                try:
+                    response = urequests.get(firmware_url)
+                    break
+                except OSError as e:
+                    print(f"Error fetching {filename}: {e}, retrying {i+1}/{max_retries}...")
+                    time.sleep(2)
+
+            if response is None:
+                print(f"Failed to fetch {filename} after retries.")
+                return False
+
             if response.status_code == 200:
                 print(f'Fetched latest firmware code for {filename}, status: {response.status_code}')
 
@@ -82,7 +97,20 @@ class OTAUpdater:
         # self.connect_wifi()
 
         print(f'Checking for latest version... on {self.version_url}')
-        response = urequests.get(self.version_url)
+
+        response = None
+        max_retries = 3
+        for i in range(max_retries):
+            try:
+                response = urequests.get(self.version_url)
+                break
+            except OSError as e:
+                print(f"Error checking for updates: {e}, retrying {i+1}/{max_retries}...")
+                time.sleep(2)
+
+        if response is None:
+            print("Failed to check for updates after retries.")
+            return False
 
         data = json.loads(response.text)
 
