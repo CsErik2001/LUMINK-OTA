@@ -24,11 +24,11 @@ class OTAUpdater:
         # get the current version (stored in version.json)
         if 'version.json' in os.listdir():
             with open('version.json') as f:
-                self.current_version = int(json.load(f)['version'])
+                self.current_version = float(json.load(f)['version'])
             print(f"Current device firmware version is '{self.current_version}'")
 
         else:
-            self.current_version = 0
+            self.current_version = 0.0
             # save the current version
             with open('version.json', 'w') as f:
                 json.dump({'version': self.current_version}, f)
@@ -119,7 +119,7 @@ class OTAUpdater:
         # Turn list to dict using dictionary comprehension
         #         my_dict = {data[i]: data[i + 1] for i in range(0, len(data), 2)}
 
-        self.latest_version = int(data['version'])
+        self.latest_version = float(data['version'])
         print(f'latest version is: {self.latest_version}')
 
         # compare versions
