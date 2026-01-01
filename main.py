@@ -75,7 +75,7 @@ class WeatherStation:
 
     def display_header(self, battery, city, date_time, version):
         self.ssd.draw_rectangle(0, 0, 296, 10, fill=True)
-        self.ssd.show_string(f"v{version}, {battery}%", 10, 2, invert=True)
+        self.ssd.show_string(f"V{version}, {battery}%", 10, 2, invert=True)
         self.ssd.show_string(f"{city}", 130, 2, invert=True)
         self.ssd.show_string(
             f"{self.month_names[date_time[1] - 1]} {date_time[2]}., {self.day_names[date_time[6]]} {date_time[3]:02}:{date_time[4]:02}",
