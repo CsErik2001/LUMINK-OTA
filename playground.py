@@ -8,3 +8,5 @@ def test():
     sleep(1)
     helper.rgb_flash(0,0,255)
     sleep(1)
+
+print("v1.2")
