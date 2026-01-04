@@ -23,7 +23,7 @@ class WeatherStation:
         self.battery = Battery(helper.VBAT)
         self.ota_updater = OTAUpdater(self.settings.FIRMWARE_URL,
                                       ["battery.py", "c3pico.py", "eink_config.py", "font.py", "main.py",
-                                                 "ota.py", "ssd1680.py"], self.settings.BRANCH)
+                                                 "ota.py", "ssd1680.py", "ble.py"], self.settings.BRANCH)
         self.month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
         self.day_names = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"]
         self.directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
