@@ -136,10 +136,6 @@ if __name__ == '__main__':
 
     try:
         ws.prov.run()
-        # if not helper.connect_wifi(ws.settings.SSID, ws.settings.PASSWORD):
-            # ws.display_bluetooth()
-            # ws.ssd.update()
-
 
         ws.ota_updater.download_and_install_update_if_available()
 
