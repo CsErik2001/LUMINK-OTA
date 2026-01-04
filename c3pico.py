@@ -1,11 +1,11 @@
 import neopixel
-from machine import SoftI2C
+import ubinascii
+from machine import SoftI2C, unique_id
 from micropython import const
 from machine import Pin, Timer
-from network import WLAN, STA_IF
+from network import WLAN, STA_IF, STAT_GOT_IP, STAT_WRONG_PASSWORD, STAT_NO_AP_FOUND
 from urequests import get
-from os import uname
-from time import sleep, time
+from time import sleep
 
 # Pin Assignments
 
@@ -51,41 +51,33 @@ BUTTON9 = const(9)
 button9 = Pin(BUTTON9, Pin.IN, Pin.PULL_UP)
 
 
-def connect_wifi(ssid: str, password: str, flash: bool = True, hostname: str = "c3-pico") -> None:
-    station = WLAN(STA_IF)
-    station.active(True)
-    station.config(hostname=hostname)
-    station.connect(ssid, password)
-
-    print(f'Connecting to {ssid}')
-    start_time = time()
-
-    while not station.isconnected() and (time() - start_time) < 10:
-        rgb_flash(255, 255, 0, 100) if flash else print("Connecting...")
-        sleep(1)
-
-    if station.isconnected():
-        rgb_flash(0, 255, 0) if flash else print("Connected")
-    else:
-        rgb_flash(255, 0, 0) if flash else print("Error")
+def button_pressed() -> bool:
+    return not button9.value()
 
 
-def get_unique_id() -> str:
+def connect_wifi(ssid: str, password: str, timeout: int = 15) -> bool:
+    print(f"Connecting to: {ssid}")
     wlan = WLAN(STA_IF)
     wlan.active(True)
-    mac = wlan.config('mac')
-    unique_id = ''.join(['{:02X}'.format(b) for b in mac])
-    return unique_id
+
+    if not wlan.isconnected():
+        wlan.connect(ssid, password)
+        while timeout > 0:
+            status = wlan.status()
+            if status == STAT_GOT_IP:
+                return True
+            if status == STAT_WRONG_PASSWORD:
+                print("ERROR: Wrong password")
+                return False
+            if status == STAT_NO_AP_FOUND:
+                print("ERROR: Network not found")
+                return False
+
+            sleep(.25)
+            timeout -= 1
+
+    return wlan.isconnected()
 
 
-def get_device_data() -> dict[str, str]:
-    info = uname()
-    payload = {
-        "uid": get_unique_id(),
-        "sysname": info.sysname,
-        "nodename": info.nodename,
-        "release": info.release,
-        "version": info.version,
-        "machine": info.machine
-    }
-    return payload
+def device_id() -> str:
+    return ubinascii.hexlify(unique_id()).decode().upper()
