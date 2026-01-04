@@ -1,10 +1,18 @@
 from machine import ADC, Pin
 
 class Battery:
-    def __init__(self, pin_number, attenuation=ADC.ATTN_11DB, voltage_divider_factor=1.77):
+    # Battery Specs:
+    # Model: 803450
+    # Type: Lithium battery
+    # Capacity: 2000mAh
+    # Rated Voltage: 3.7v
+    # Dimensions: 34x50x8mm
+
+    def __init__(self, pin_number, capacity=2000, attenuation=ADC.ATTN_11DB, voltage_divider_factor=2.0):
         self.pin = ADC(Pin(pin_number))
         self.pin.init(atten=attenuation)  # Set attenuation to read up to 3.3V
         self.voltage_divider_factor = voltage_divider_factor
+        self.capacity = capacity
 
     def read_voltage(self):
         raw_value = self.pin.read_u16()  # Read the raw ADC value
