@@ -1,5 +1,7 @@
 from time import localtime, ticks_ms
 
+from ble import BLEProvisioner
+
 import requests
 from machine import deepsleep
 
@@ -17,10 +19,11 @@ class WeatherStation:
         self.ssd = config()
         self.ssd.init()
         self.settings = Settings()
+        self.prov = BLEProvisioner()
         self.battery = Battery(helper.VBAT)
-        self.ota_updater = OTAUpdater(repo_url=self.settings.FIRMWARE_URL,
-                                      filenames=["battery.py", "c3pico.py", "eink_config.py", "font.py", "main.py",
-                                                 "ota.py", "ssd1680.py"], branch=self.settings.BRANCH)
+        self.ota_updater = OTAUpdater(self.settings.FIRMWARE_URL,
+                                      ["battery.py", "c3pico.py", "eink_config.py", "font.py", "main.py",
+                                                 "ota.py", "ssd1680.py"], self.settings.BRANCH)
         self.month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
         self.day_names = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"]
         self.directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
@@ -73,9 +76,12 @@ class WeatherStation:
     def display_low_battery(self):
         self.ssd.show_bitmap(self._load_icon("battery"), 100, 16)
 
+    def display_bluetooth(self):
+        self.ssd.show_bitmap(self._load_icon("bluetooth"), 100, 16)
+
     def display_header(self, battery, city, date_time, version):
         self.ssd.draw_rectangle(0, 0, 296, 10, fill=True)
-        self.ssd.show_string(f"v{version}, {battery}%", 10, 2, invert=True)
+        self.ssd.show_string(f"{version}v, {battery}%", 10, 2, invert=True)
         self.ssd.show_string(f"{city}", 130, 2, invert=True)
         self.ssd.show_string(
             f"{self.month_names[date_time[1] - 1]} {date_time[2]}., {self.day_names[date_time[6]]} {date_time[3]:02}:{date_time[4]:02}",
@@ -126,15 +132,20 @@ class WeatherStation:
 if __name__ == '__main__':
     ws = WeatherStation()
 
+    ws.ssd.clear(ws.settings.theme())
+
     try:
-        helper.connect_wifi(ws.settings.SSID, ws.settings.PASSWORD, False, "weather-station")
+        ws.prov.run()
+        # if not helper.connect_wifi(ws.settings.SSID, ws.settings.PASSWORD):
+            # ws.display_bluetooth()
+            # ws.ssd.update()
+
 
         ws.ota_updater.download_and_install_update_if_available()
 
         data = ws.get_data(ws.settings.LAT, ws.settings.LON, ws.settings.CNT, ws.settings.UNITS, ws.settings.LANG,
                            ws.settings.API_KEY)
 
-        ws.ssd.clear(ws.settings.theme())
 
         if ws.battery.read_voltage() < 3.27:
             ws.display_low_battery()
