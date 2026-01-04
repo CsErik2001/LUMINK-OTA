@@ -64,7 +64,10 @@ class BLEProvisioner:
 
     def _advertise(self):
         name_bytes = bytes(self.ble_name, 'UTF-8')
-        adv_data = bytearray(b'\x02\x01\x06') + bytearray((len(name_bytes) + 1, 0x09)) + name_bytes
+        adv_data = bytearray(b'\x02\x01\x06')
+        man_data = b'\xff\xff' + b'LUMINK'
+        adv_data += bytearray((len(man_data) + 1, 0xFF)) + man_data
+        adv_data += bytearray((len(name_bytes) + 1, 0x09)) + name_bytes
         self._ble.gap_advertise(100000, adv_data)
 
     def _irq(self, event, data):
@@ -99,8 +102,7 @@ class BLEProvisioner:
         self._ble.active(False)
         sleep(0.5)
 
-    def run(self):
-
+    def run(self, callback=None):
         ssid_saved, pass_saved = self._load_config()
 
         if ssid_saved and pass_saved:
@@ -114,6 +116,10 @@ class BLEProvisioner:
                 print("Sikertelen csatlakozás a mentett adatokkal.")
 
         print("Wifi kapcsolat nem jött létre. BLE Config indítása...")
+
+        if callback:
+            callback()
+
         self._setup_ble()
 
         while not self.data_ready:

@@ -19,7 +19,7 @@ class WeatherStation:
         self.ssd = config()
         self.ssd.init()
         self.settings = Settings()
-        self.prov = BLEProvisioner()
+        self.prov = BLEProvisioner(ble_name="LUMINK")
         self.battery = Battery(helper.VBAT)
         self.ota_updater = OTAUpdater(self.settings.FIRMWARE_URL,
                                       ["battery.py", "c3pico.py", "eink_config.py", "font.py", "main.py",
@@ -135,13 +135,12 @@ if __name__ == '__main__':
     ws.ssd.clear(ws.settings.theme())
 
     try:
-        ws.prov.run()
+        ws.prov.run(callback=lambda: (ws.display_bluetooth(), ws.ssd.update()))
 
         ws.ota_updater.download_and_install_update_if_available()
 
         data = ws.get_data(ws.settings.LAT, ws.settings.LON, ws.settings.CNT, ws.settings.UNITS, ws.settings.LANG,
                            ws.settings.API_KEY)
-
 
         if ws.battery.read_voltage() < 3.27:
             ws.display_low_battery()
